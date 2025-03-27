@@ -397,7 +397,7 @@
                     // Signed up
                     showMessage("Account created successfully! Redirecting...", 'success');
                     setTimeout(() => {
-                        window.location.href = 'salesperson.html';
+                        window.location.href = 'director.html';
                     }, 1500);
                 })
                 .catch((error) => {
@@ -412,7 +412,7 @@
         // Check if user is already logged in
         auth.onAuthStateChanged((user) => {
             if (user) {
-                window.location.href = 'index.html';
+                window.location.href = 'director.html';
             }
         });
     </script>
