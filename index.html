@@ -362,7 +362,7 @@
             auth.signInWithEmailAndPassword(email, password)
                 .then((userCredential) => {
                     // Signed in
-                    window.location.href = 'director.html';
+                    window.location.href = 'direct.html';
                 })
                 .catch((error) => {
                     let errorMessage = error.message;
@@ -397,7 +397,7 @@
                     // Signed up
                     showMessage("Account created successfully! Redirecting...", 'success');
                     setTimeout(() => {
-                        window.location.href = 'director.html';
+                        window.location.href = 'direct.html';
                     }, 1500);
                 })
                 .catch((error) => {
@@ -412,7 +412,7 @@
         // Check if user is already logged in
         auth.onAuthStateChanged((user) => {
             if (user) {
-                window.location.href = 'director.html';
+                window.location.href = 'direct.html';
             }
         });
     </script>
