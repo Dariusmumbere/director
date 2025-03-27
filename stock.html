@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Stock</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f3f4f6;
+      color: #1f2937;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background-color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .add-stock-btn {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .add-stock-btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    .main-content {
+      padding: 20px;
+    }
+
+    .stock-table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .stock-table th,
+    .stock-table td {
+      padding: 12px;
+      text-align: left;
+    }
+
+    .stock-table th {
+      background-color: #2563eb;
+      color: white;
+      font-weight: 500;
+    }
+
+    .stock-table tr:hover {
+      background-color: #f3f4f6;
+    }
+
+    .stock-table td {
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .actions button {
+      background: black;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 5px 10px;
+      border-radius: 5px;
+      color: white;
+    }
+
+    .increment-btn {
+      background-color: #10b981; /* Green */
+    }
+
+    .increment-btn:hover {
+      background-color: #0d9e6e; /* Darker green */
+    }
+
+    .decrement-btn {
+      background-color: #ef4444; /* Red */
+    }
+
+    .decrement-btn:hover {
+      background-color: #dc2626; /* Darker red */
+    }
+
+    .edit-btn {
+      background-color: #2563eb; /* Blue */
+    }
+
+    .edit-btn:hover {
+      background-color: #1d4ed8; /* Darker blue */
+    }
+
+    .delete-btn {
+      background-color: #ef4444; /* Red */
+    }
+
+    .delete-btn:hover {
+      background-color: #dc2626; /* Darker red */
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 400px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-content h2 {
+      margin-top: 0;
+    }
+
+    .modal-content form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-content input {
+      padding: 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 5px;
+    }
+
+    .modal-content button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .modal-content button:hover {
+      background-color: #1d4ed8;
+    }
+
+    .close-btn {
+      background-color: #ef4444;
+      margin-top: 10px;
+    }
+
+    .close-btn:hover {
+      background-color: #dc2626;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Dropdown Styles */
+    .dropdown {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      width: 100%;
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      z-index: 1;
+    }
+
+    .dropdown-content div {
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .dropdown-content div:hover {
+      background-color: #f1f1f1;
+    }
+
+    /* Loading indicator */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0,0,0,.3);
+      border-radius: 50%;
+      border-top-color: #2563eb;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>Manage Stock</h1>
+    <button class="add-stock-btn" onclick="openAddStockModal()">
+      <i class="fas fa-plus"></i> Add New Stock
+    </button>
+  </header>
+
+  <main class="main-content">
+    <table class="stock-table">
+      <thead>
+        <tr>
+          <th>Product Name</th>
+          <th>Type</th>
+          <th>Quantity</th>
+          <th>Price Per Unit</th>
+          <th>Total Value</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="stockTableBody">
+        <!-- Loading indicator will be shown here initially -->
+        <tr>
+          <td colspan="6" class="loading-container">
+            <div class="loading"></div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+
+  <!-- Add Stock Modal -->
+  <div id="addStockModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h2>Add New Stock</h2>
+      <form id="addStockForm">
+        <div class="dropdown">
+          <input type="text" id="productName" placeholder="Product Name" onfocus="fetchProducts()" required>
+          <div id="productDropdown" class="dropdown-content"></div>
+        </div>
+        <input type="text" id="productType" placeholder="Product Type" readonly>
+        <input type="number" id="quantity" placeholder="Quantity" required>
+        <input type="number" id="pricePerUnit" placeholder="Price Per Unit" readonly>
+        <button type="submit">Add Stock</button>
+      </form>
+      <button class="close-btn" onclick="closeModal('addStockModal')">Close</button>
+    </div>
+  </div>
+
+<script>
+  const backendUrl = 'https://man-m681.onrender.com'; // Replace with your backend URL
+
+  // Function to open the Add Stock Modal
+  function openAddStockModal() {
+    document.getElementById('addStockModal').classList.remove('hidden');
+  }
+
+  // Function to close any modal
+  function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+  }
+
+  // Fetch and display stock items
+  async function fetchStock() {
+    try {
+      const stockTableBody = document.getElementById('stockTableBody');
+      // Show loading indicator
+      stockTableBody.innerHTML = `
+        <tr>
+          <td colspan="6" class="loading-container">
+            <div class="loading"></div>
+          </td>
+        </tr>
+      `;
+      
+      const response = await fetch(`${backendUrl}/stock/`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      
+      if (data.stock && Array.isArray(data.stock)) {
+        if (data.stock.length === 0) {
+          stockTableBody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center;">No stock items found. Add some stock to get started.</td>
+            </tr>
+          `;
+        } else {
+          stockTableBody.innerHTML = data.stock.map(item => `
+            <tr>
+              <td>${item.product_name}</td>
+              <td>${item.product_type}</td>
+              <td>${item.quantity}</td>
+              <td>UGX ${item.price_per_unit.toLocaleString()}</td>
+              <td>UGX ${(item.quantity * item.price_per_unit).toLocaleString()}</td>
+              <td class="actions">
+                <button class="increment-btn" onclick="incrementStock('${item.product_name}', '${item.product_type}')">
+                  <i class="fas fa-plus"></i> Increment
+                </button>
+                <button class="decrement-btn" onclick="decrementStock('${item.product_name}', '${item.product_type}')">
+                  <i class="fas fa-minus"></i> Decrement
+                </button>
+                <button class="delete-btn" onclick="deleteStockItem('${item.product_name}', '${item.product_type}')">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } else {
+        console.error('Invalid data structure received:', data);
+        stockTableBody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: #ef4444;">
+              Error loading stock data. Please try again.
+            </td>
+          </tr>
+        `;
+      }
+    } catch (error) {
+      console.error('Error fetching stock:', error);
+      document.getElementById('stockTableBody').innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; color: #ef4444;">
+            Error loading stock data: ${error.message}
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  // Fetch all products for dropdown
+  async function fetchProducts() {
+    try {
+      const response = await fetch(`${backendUrl}/products/`);
+      const data = await response.json();
+      const dropdown = document.getElementById('productDropdown');
+      dropdown.innerHTML = data.products.map(product => `
+        <div onclick="selectProduct('${product.name}', '${product.type}', ${product.buying_price})">
+          ${product.name} (${product.type}) <!-- Display product name with type in brackets -->
+        </div>
+      `).join('');
+      dropdown.style.display = 'block';
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  }
+
+  // Select a product from the dropdown
+  function selectProduct(name, type, price) {
+    document.getElementById('productName').value = name;
+    document.getElementById('productType').value = type;
+    document.getElementById('pricePerUnit').value = price;
+    document.getElementById('productDropdown').style.display = 'none';
+  }
+
+  // Add Stock
+  document.getElementById('addStockForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const productName = document.getElementById('productName').value;
+    const productType = document.getElementById('productType').value;
+    const quantity = parseFloat(document.getElementById('quantity').value);
+    const pricePerUnit = parseFloat(document.getElementById('pricePerUnit').value);
+
+    try {
+      const response = await fetch(`${backendUrl}/stock/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_name: productName,
+          product_type: productType,
+          quantity: quantity,
+          price_per_unit: pricePerUnit,
+        }),
+      });
+
+      if (response.ok) {
+        alert('Stock added successfully!');
+        closeModal('addStockModal');
+        // Reset form
+        document.getElementById('addStockForm').reset();
+        // Refresh stock table
+        fetchStock();
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to add stock: ${errorData.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error adding stock:', error);
+      alert('Error adding stock. Please check console for details.');
+    }
+  });
+
+  // Increment Stock
+  async function incrementStock(productName, productType) {
+    try {
+      const response = await fetch(`${backendUrl}/stock/${productName}/${productType}/increment`, {
+        method: 'PUT',
+      });
+
+      if (response.ok) {
+        alert('Stock quantity incremented successfully!');
+        fetchStock(); // Refresh the stock table
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to increment stock: ${errorData.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error incrementing stock:', error);
+      alert('Error incrementing stock. Please check console for details.');
+    }
+  }
+
+  // Decrement Stock
+  async function decrementStock(productName, productType) {
+    try {
+      const response = await fetch(`${backendUrl}/stock/${productName}/${productType}/decrement`, {
+        method: 'PUT',
+      });
+
+      if (response.ok) {
+        alert('Stock quantity decremented successfully!');
+        fetchStock(); // Refresh the stock table
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to decrement stock: ${errorData.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error decrementing stock:', error);
+      alert('Error decrementing stock. Please check console for details.');
+    }
+  }
+
+  // Delete Stock Item
+  async function deleteStockItem(productName, productType) {
+    const confirmDelete = confirm(`Are you sure you want to delete ${productName} (${productType}) from stock?`);
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`${backendUrl}/stock/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_name: productName,
+          product_type: productType,
+        }),
+      });
+
+      if (response.ok) {
+        alert('Stock deleted successfully!');
+        fetchStock();
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to delete stock: ${errorData.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting stock:', error);
+      alert('Error deleting stock. Please check console for details.');
+    }
+  }
+
+  // Initialize the page
+  document.addEventListener('DOMContentLoaded', function () {
+    fetchStock(); // Fetch and display stock items when the page loads
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!event.target.matches('#productName')) {
+        const dropdown = document.getElementById('productDropdown');
+        if (dropdown) dropdown.style.display = 'none';
+      }
+    });
+  });
+</script>
+</body>
+</html>
